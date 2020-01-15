@@ -48,7 +48,11 @@ endif
 
 " ============================================================================
 " Active plugins
-" You can disable or add new ones here:
+" You can disable or add new ones here! after changing stuff here, all
+" commands to clean/install/update are:
+"       :PlugClean 
+"       :PlugInstall
+"       :PlugUpdate
 
 " this needs to be here, so vim-plug knows we are declaring the plugins we
 " want to use
@@ -70,9 +74,6 @@ Plug 'scrooloose/nerdtree'
 Plug 'majutsushi/tagbar'
 " Search results counter
 Plug 'vim-scripts/IndexedSearch'
-" A couple of nice colorschemes
-" Plug 'fisadev/fisa-vim-colorscheme'
-Plug 'patstockwell/vim-monokai-tasty'
 " Airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -147,6 +148,9 @@ endif
 " Plug 'mattn/webapi-vim'
 " Plug 'jfo/hound.vim'
 
+" A VimL plugin that provides functions and commands for Neovim GUIs
+Plug 'equalsraf/neovim-gui-shim'
+
 " Tell vim-plug we finished declaring plugins, so it can load them
 call plug#end()
 
@@ -214,16 +218,6 @@ set nu
 
 " remove ugly vertical lines on window division
 set fillchars+=vert:\ 
-
-" use 256 colors when possible
-if has('gui_running') || using_neovim || (&term =~? 'mlterm\|xterm\|xterm-256\|screen-256')
-    if !has('gui_running')
-        let &t_Co = 256
-    endif
-    colorscheme vim-monokai-tasty
-else
-    colorscheme delek
-endif
 
 " needed so deoplete can auto select the first suggestion
 set completeopt+=noinsert
@@ -316,11 +310,25 @@ map <F2> :TaskList<CR>
 " Run linter on write
 autocmd! BufWritePost * Neomake
 
-" Check code as python3 by default
-let g:neomake_python_python_maker = neomake#makers#ft#python#python()
-let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
-let g:neomake_python_python_maker.exe = 'python3 -m py_compile'
-let g:neomake_python_flake8_maker.exe = 'python3 -m flake8'
+" use flake8 from different places (configured accordingly) and set the
+" vertical column-limit-control bar
+function! WindowLimits()
+    let g:neomake_python_python_maker = neomake#makers#ft#python#python()
+    let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
+    if getcwd() =~ $HOME . "/canonical/snappy/*"
+        let g:neomake_python_python_maker.exe = getcwd() . '/env/bin/python3 -m py_compile'
+        let g:neomake_python_flake8_maker.exe = getcwd() . '/env/bin/python3 -m flake8'
+        let g:neomake_python_flake8_maker.args = "--max-line-length=79"
+        set colorcolumn=80
+    else
+        let g:neomake_python_python_maker.exe = '/home/facundo/.virtualenvs/py3flake8/bin/python3'
+        let g:neomake_python_flake8_maker.exe = '/home/facundo/.virtualenvs/py3flake8/bin/flake8'
+        let g:neomake_python_flake8_maker.args = "--max-line-length=99 --select=E,W,F,C,N"
+        set colorcolumn=100
+    endif
+endfunction
+autocmd BufRead,BufNewFile *.py call WindowLimits()
+
 
 " Disable error messages inside the buffer, next to the problematic line
 let g:neomake_virtualtext_current_error = 0
@@ -457,3 +465,60 @@ endif
 if filereadable(expand(custom_configs_path))
   execute "source " . custom_configs_path
 endif
+
+" colors! general schema and a custom fix
+colorscheme zellner
+highlight Search guibg='Yellow' guifg='NavyBlue'
+
+" make the GUI to set a window title to identify it properly
+set title
+
+" enable all mouse modes
+set mouse=a
+
+" custom copy & paste from system's clipboard
+map <C-K> "+y<C-M>
+map <C-L> "+P<C-M>
+
+" make Up and Down arrow keys to use display (not logical) lines (IOW get in
+" all the lines of a wrapped one) but in and out of insert mode
+map <Up> gk
+map <Down> gj
+imap <Up> <C-o>gk
+imap <Down> <C-o>gj
+
+" no automatic wrapping in Python files
+autocmd FileType python set nowrap
+
+" when wrapping, don't break words in the middle
+set linebreak
+
+" declare generic whitespace at the end and tabs at beginning as bad, and
+" paint them
+highlight BadWhitespace ctermbg=red guibg=red
+au BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
+au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+ 
+" set a painted vertical limit at column 80 for ReST files
+function! RestLimits()
+    set colorcolumn=80
+endfunction
+autocmd BufRead,BufNewFile *.rst call RestLimits()
+ 
+" go to last know position inside the file when it's opened again
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+    \| exe "normal g'\"" | endif
+endif
+
+" use completion on TAB request, not automatically (NOTE: this is WIP and I
+" still don't understand this block)
+call deoplete#custom#option('auto_complete', v:false)
+function! s:check_back_space() abort "{{{
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~ '\s'
+endfunction"}}}
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ deoplete#manual_complete()
