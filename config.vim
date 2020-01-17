@@ -82,20 +82,20 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 " Pending tasks list
 Plug 'fisadev/FixedTaskList.vim'
-" Async autocompletion
-if using_neovim && vim_plug_just_installed
-    Plug 'Shougo/deoplete.nvim', {'do': ':autocmd VimEnter * UpdateRemotePlugins'}
-else
-    Plug 'Shougo/deoplete.nvim'
-endif
+" " Async autocompletion
+" if using_neovim && vim_plug_just_installed
+"     Plug 'Shougo/deoplete.nvim', {'do': ':autocmd VimEnter * UpdateRemotePlugins'}
+" else
+"     Plug 'Shougo/deoplete.nvim'
+" endif
 Plug 'roxma/nvim-yarp'
 Plug 'roxma/vim-hug-neovim-rpc'
-" Python autocompletion
-Plug 'deoplete-plugins/deoplete-jedi'
+" " Python autocompletion
+" Plug 'deoplete-plugins/deoplete-jedi'
 " Completion from other opened files
 Plug 'Shougo/context_filetype.vim'
-" Just to add the python go-to-definition and similar features, autocompletion
-" from this plugin is disabled
+" Just to add the python go-to-definition and similar features, autocompletion 
+" from this plugin is disabled FIXME docstring
 Plug 'davidhalter/jedi-vim'
 " Automatically close parenthesis, etc
 Plug 'Townk/vim-autoclose'
@@ -150,6 +150,10 @@ endif
 
 " A VimL plugin that provides functions and commands for Neovim GUIs
 Plug 'equalsraf/neovim-gui-shim'
+
+" Supertab is a vim plugin which allows you to use <Tab> for all your insert 
+" completion needs (:help ins-completion).
+Plug 'ervandew/supertab'
 
 " Tell vim-plug we finished declaring plugins, so it can load them
 call plug#end()
@@ -220,11 +224,12 @@ set nu
 set fillchars+=vert:\ 
 
 " needed so deoplete can auto select the first suggestion
-set completeopt+=noinsert
+" set completeopt+=noinsert
 " comment this line to enable autocompletion preview window
 " (displays documentation related to the selected completion option)
 " disabled by default because preview makes the window flicker
 set completeopt-=preview
+
 
 " autocompletion of files and commands behaves like shell
 " (complete only the common part, list the options that match)
@@ -358,19 +363,23 @@ nmap ,c :Commands<CR>
 
 " Deoplete -----------------------------
 
-" Use deoplete.
-let g:deoplete#enable_at_startup = 1
-let g:deoplete#enable_ignore_case = 1
-let g:deoplete#enable_smart_case = 1
+" " Use deoplete.
+" let g:deoplete#enable_at_startup = 0
+" let g:deoplete#enable_ignore_case = 1
+" let g:deoplete#enable_smart_case = 1
 " complete with words from any opened file
 let g:context_filetype#same_filetypes = {}
 let g:context_filetype#same_filetypes._ = '_'
 
 " Jedi-vim ------------------------------
 
-" Disable autocompletion (using deoplete instead)
-let g:jedi#completions_enabled = 0
+let g:jedi#completions_enabled = 1
+let g:jedi#use_tabs_not_buffers = 0
+let g:jedi#popup_on_dot = 0
+let g:jedi#show_call_signatures = ""
 
+    
+"
 " All these mappings work only for python code:
 " Go to definition
 let g:jedi#goto_command = ',d'
@@ -511,14 +520,6 @@ if has("autocmd")
     \| exe "normal g'\"" | endif
 endif
 
-" use completion on TAB request, not automatically (NOTE: this is WIP and I
-" still don't understand this block)
-call deoplete#custom#option('auto_complete', v:false)
-function! s:check_back_space() abort "{{{
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~ '\s'
-endfunction"}}}
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ deoplete#manual_complete()
+set completefunc=jedi#completions
+" let g:SuperTabDefaultCompletionType = "<c-x><c-u>"
+let g:SuperTabContextDefaultCompletionType = "<c-x><c-o>"
