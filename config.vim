@@ -82,57 +82,27 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 " Pending tasks list
 Plug 'fisadev/FixedTaskList.vim'
-" " Async autocompletion
-" if using_neovim && vim_plug_just_installed
-"     Plug 'Shougo/deoplete.nvim', {'do': ':autocmd VimEnter * UpdateRemotePlugins'}
-" else
-"     Plug 'Shougo/deoplete.nvim'
-" endif
-Plug 'roxma/nvim-yarp'
-Plug 'roxma/vim-hug-neovim-rpc'
-" " Python autocompletion
-" Plug 'deoplete-plugins/deoplete-jedi'
-" Completion from other opened files
-Plug 'Shougo/context_filetype.vim'
-" Just to add the python go-to-definition and similar features, autocompletion 
-" from this plugin is disabled FIXME docstring
+" VIM binding to the autocompletion library Jedi.
 Plug 'davidhalter/jedi-vim'
-" Automatically close parenthesis, etc
-Plug 'Townk/vim-autoclose'
-" Surround
-Plug 'tpope/vim-surround'
+" MatchEm is a vim plugin which auto adds closing quotes, parens, brackets, 
+" curlies and other such characters as you type.
+Plug 'ervandew/matchem'
 " Indent text object
 Plug 'michaeljsmith/vim-indent-object'
 " Indentation based movements
 Plug 'jeetsukumaran/vim-indentwise'
-" Better language packs
-Plug 'sheerun/vim-polyglot'
-" Ack code search (requires ack installed in the system)
-Plug 'mileszs/ack.vim'
 " Paint css colors with the real color
 Plug 'lilydjwg/colorizer'
-" Window chooser
-Plug 't9md/vim-choosewin'
 " Automatically sort python imports
 Plug 'fisadev/vim-isort'
 " Highlight matching html tags
 Plug 'valloric/MatchTagAlways'
-" Generate html in a simple way
-Plug 'mattn/emmet-vim'
 " Git integration
 Plug 'tpope/vim-fugitive'
 " Git/mercurial/others diff icons on the side of the file lines
 Plug 'mhinz/vim-signify'
-" Yank history navigation
-Plug 'vim-scripts/YankRing.vim'
 " Linters
 Plug 'neomake/neomake'
-" Relative numbering of lines (0 is the current line)
-" (disabled by default because is very intrusive and can't be easily toggled
-" on/off. When the plugin is present, will always activate the relative
-" numbering every time you go to normal mode. Author refuses to add a setting
-" to avoid that)
-Plug 'myusuf3/numbers.vim'
 " Nice icons in the file explorer and file type status line.
 Plug 'ryanoasis/vim-devicons'
 
@@ -142,11 +112,6 @@ if using_vim
     " XML/HTML tags navigation (neovim has its own)
     Plug 'vim-scripts/matchit.zip'
 endif
-
-" Code searcher. If you enable it, you should also configure g:hound_base_url 
-" and g:hound_port, pointing to your hound instance
-" Plug 'mattn/webapi-vim'
-" Plug 'jfo/hound.vim'
 
 " A VimL plugin that provides functions and commands for Neovim GUIs
 Plug 'equalsraf/neovim-gui-shim'
@@ -217,9 +182,6 @@ set tabstop=4
 set softtabstop=4
 set shiftwidth=4
 
-" show line numbers
-set nu
-
 " remove ugly vertical lines on window division
 set fillchars+=vert:\ 
 
@@ -273,6 +235,7 @@ map <F4> :TagbarToggle<CR>
 " autofocus on tagbar open
 let g:tagbar_autofocus = 1
 
+"
 " NERDTree -----------------------------
 
 " toggle nerdtree display
@@ -305,19 +268,34 @@ endfunction
 
 autocmd BufEnter * call NERDTreeRefresh()
 
+"
 " Tasklist ------------------------------
 
 " show pending tasks list
 map <F2> :TaskList<CR>
 
-" Neomake ------------------------------
 
-" Run linter on write
-autocmd! BufWritePost * Neomake
+" Linters ------------------------------
 
 " use flake8 from different places (configured accordingly) and set the
 " vertical column-limit-control bar
-function! WindowLimits()
+function! PythonSetUp()
+    " disable error messages inside the buffer, next to the problematic line
+    let g:neomake_virtualtext_current_error = 0
+    
+    " run linters on reading and writing
+    call neomake#configure#automake('rw')
+    
+    " generic neomake config
+    let g:neomake_python_enabled_makers = ['flake8']
+
+    " show a windows below, with all the errors, not too big, and close it
+    " with the file
+    let g:neomake_open_list = 2
+    let g:neomake_list_height = 5
+    autocmd QuitPre * lclose
+
+    " specific to where get the info
     let g:neomake_python_python_maker = neomake#makers#ft#python#python()
     let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
     if getcwd() =~ $HOME . "/canonical/snappy/*"
@@ -332,11 +310,8 @@ function! WindowLimits()
         set colorcolumn=100
     endif
 endfunction
-autocmd BufRead,BufNewFile *.py call WindowLimits()
+autocmd BufRead,BufNewFile *.py call PythonSetUp()
 
-
-" Disable error messages inside the buffer, next to the problematic line
-let g:neomake_virtualtext_current_error = 0
 
 " Fzf ------------------------------
 
@@ -361,16 +336,7 @@ nmap ,wF :execute ":Lines " . expand('<cword>')<CR>
 " commands finder mapping
 nmap ,c :Commands<CR>
 
-" Deoplete -----------------------------
-
-" " Use deoplete.
-" let g:deoplete#enable_at_startup = 0
-" let g:deoplete#enable_ignore_case = 1
-" let g:deoplete#enable_smart_case = 1
-" complete with words from any opened file
-let g:context_filetype#same_filetypes = {}
-let g:context_filetype#same_filetypes._ = '_'
-
+"
 " Jedi-vim ------------------------------
 
 let g:jedi#completions_enabled = 1
@@ -378,8 +344,6 @@ let g:jedi#use_tabs_not_buffers = 0
 let g:jedi#popup_on_dot = 0
 let g:jedi#show_call_signatures = ""
 
-    
-"
 " All these mappings work only for python code:
 " Go to definition
 let g:jedi#goto_command = ',d'
@@ -390,19 +354,7 @@ let g:jedi#goto_assignments_command = ',a'
 " Go to definition in new tab
 nmap ,D :tab split<CR>:call jedi#goto()<CR>
 
-" Ack.vim ------------------------------
-
-" mappings
-nmap ,r :Ack 
-nmap ,wr :execute ":Ack " . expand('<cword>')<CR>
-
-" Window Chooser ------------------------------
-
-" mapping
-nmap  -  <Plug>(choosewin)
-" show big letters
-let g:choosewin_overlay_enable = 1
-
+"
 " Signify ------------------------------
 
 " this first setting decides in which order try to guess your current vcs
@@ -419,23 +371,6 @@ highlight SignifySignAdd    cterm=bold ctermbg=237  ctermfg=119
 highlight SignifySignDelete cterm=bold ctermbg=237  ctermfg=167
 highlight SignifySignChange cterm=bold ctermbg=237  ctermfg=227
 
-" Autoclose ------------------------------
-
-" Fix to let ESC work as espected with Autoclose plugin
-" (without this, when showing an autocompletion window, ESC won't leave insert
-"  mode)
-let g:AutoClosePumvisible = {"ENTER": "\<C-Y>", "ESC": "\<ESC>"}
-
-" Yankring -------------------------------
-
-if using_neovim
-    let g:yankring_history_dir = '~/.config/nvim/'
-    " Fix for yankring and neovim problem when system has non-text things
-    " copied in clipboard
-    let g:yankring_clipboard_monitor = 0
-else
-    let g:yankring_history_dir = '~/.vim/dirs/'
-endif
 
 " Airline ------------------------------
 
@@ -462,6 +397,7 @@ if fancy_symbols_enabled
 else
     let g:webdevicons_enable = 0
 endif
+
 
 " Custom configurations ----------------
 
