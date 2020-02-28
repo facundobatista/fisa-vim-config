@@ -72,8 +72,6 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree'
 " Class/module browser
 Plug 'majutsushi/tagbar'
-" Search results counter
-Plug 'vim-scripts/IndexedSearch'
 " Airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -84,15 +82,10 @@ Plug 'junegunn/fzf.vim'
 Plug 'fisadev/FixedTaskList.vim'
 " VIM binding to the autocompletion library Jedi.
 Plug 'davidhalter/jedi-vim'
-" MatchEm is a vim plugin which auto adds closing quotes, parens, brackets, 
-" curlies and other such characters as you type.
-Plug 'ervandew/matchem'
 " Indent text object
 Plug 'michaeljsmith/vim-indent-object'
 " Indentation based movements
 Plug 'jeetsukumaran/vim-indentwise'
-" Paint css colors with the real color
-Plug 'lilydjwg/colorizer'
 " Automatically sort python imports
 Plug 'fisadev/vim-isort'
 " Highlight matching html tags
@@ -191,7 +184,6 @@ set fillchars+=vert:\
 " (displays documentation related to the selected completion option)
 " disabled by default because preview makes the window flicker
 set completeopt-=preview
-
 
 " autocompletion of files and commands behaves like shell
 " (complete only the common part, list the options that match)
@@ -414,16 +406,23 @@ endif
 " colors! general schema and a custom fix
 colorscheme zellner
 highlight Search guibg='Yellow' guifg='NavyBlue'
+highlight Visual guibg='LightGrey' guifg='Black'
 
 " make the GUI to set a window title to identify it properly
 set title
 
-" enable all mouse modes
+" enable all mouse modes, and select to primary clipboard on selection
 set mouse=a
+vmap <LeftRelease> "*ygv
 
-" custom copy & paste from system's clipboard
+" custom copy, cut & paste from/to system's clipboard -- paste is L for before, ; for after,
+" both in normal and insert modes
 map <C-K> "+y<C-M>
-map <C-L> "+P<C-M>
+map <C-X> "+d<C-M>
+map <C-L> "+P
+imap <C-L> <C-O>"+P
+map <C-;> "+p
+imap <C-;> <C-O>"+p
 
 " make Up and Down arrow keys to use display (not logical) lines (IOW get in
 " all the lines of a wrapped one) but in and out of insert mode
@@ -432,8 +431,9 @@ map <Down> gj
 imap <Up> <C-o>gk
 imap <Down> <C-o>gj
 
-" no automatic wrapping in Python files
+" no automatic wrapping in Python or log files
 autocmd FileType python set nowrap
+autocmd BufEnter *.log set nowrap
 
 " when wrapping, don't break words in the middle
 set linebreak
@@ -459,3 +459,8 @@ endif
 set completefunc=jedi#completions
 " let g:SuperTabDefaultCompletionType = "<c-x><c-u>"
 let g:SuperTabContextDefaultCompletionType = "<c-x><c-o>"
+
+" verify when back to the editor if the editing file changed (if yes, do NOT
+" auto read it, ask the user what to do)
+set noautoread
+au FocusGained * :checktime

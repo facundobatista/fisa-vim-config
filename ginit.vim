@@ -7,3 +7,4 @@ if filereadable('/home/facundo/.smallscreen')
 else
     Guifont DejaVu Sans Mono:h10
 endif
+" GuiScrollBar 1
