@@ -1,6 +1,5 @@
 " Fisa-vim-config, a config for both Vim and NeoVim
 " http://vim.fisadev.com
-" version: 12.0.0
 
 " To use fancy symbols wherever possible, change this setting from 0 to 1
 " and use a font from https://github.com/ryanoasis/nerd-fonts in your terminal 
@@ -8,31 +7,19 @@
 " Turst me, they look nice when using one of those fonts).
 let fancy_symbols_enabled = 0
 
-
 set encoding=utf-8
-let using_neovim = has('nvim')
-let using_vim = !using_neovim
 
 " ============================================================================
 " Vim-plug initialization
 " Avoid modifying this section, unless you are very sure of what you are doing
 
 let vim_plug_just_installed = 0
-if using_neovim
-    let vim_plug_path = expand('~/.config/nvim/autoload/plug.vim')
-else
-    let vim_plug_path = expand('~/.vim/autoload/plug.vim')
-endif
+let vim_plug_path = expand('~/.config/nvim/autoload/plug.vim')
 if !filereadable(vim_plug_path)
     echo "Installing Vim-plug..."
     echo ""
-    if using_neovim
-        silent !mkdir -p ~/.config/nvim/autoload
-        silent !curl -fLo ~/.config/nvim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    else
-        silent !mkdir -p ~/.vim/autoload
-        silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    endif
+    silent !mkdir -p ~/.config/nvim/autoload
+    silent !curl -fLo ~/.config/nvim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     let vim_plug_just_installed = 1
 endif
 
@@ -43,8 +30,6 @@ endif
 
 " Obscure hacks done, you can now modify the rest of the config down below 
 " as you wish :)
-" IMPORTANT: some things in the config are vim or neovim specific. It's easy 
-" to spot, they are inside `if using_vim` or `if using_neovim` blocks.
 
 " ============================================================================
 " Active plugins
@@ -56,11 +41,7 @@ endif
 
 " this needs to be here, so vim-plug knows we are declaring the plugins we
 " want to use
-if using_neovim
-    call plug#begin("~/.config/nvim/plugged")
-else
-    call plug#begin("~/.vim/plugged")
-endif
+call plug#begin("~/.config/nvim/plugged")
 
 " Now the actual plugins:
 
@@ -99,13 +80,6 @@ Plug 'neomake/neomake'
 " Nice icons in the file explorer and file type status line.
 Plug 'ryanoasis/vim-devicons'
 
-if using_vim
-    " Consoles as buffers (neovim has its own consoles as buffers)
-    Plug 'rosenfeld/conque-term'
-    " XML/HTML tags navigation (neovim has its own)
-    Plug 'vim-scripts/matchit.zip'
-endif
-
 " A VimL plugin that provides functions and commands for Neovim GUIs
 Plug 'equalsraf/neovim-gui-shim'
 
@@ -123,51 +97,6 @@ if vim_plug_just_installed
     echo "Installing Bundles, please ignore key map error messages"
     :PlugInstall
 endif
-
-" ============================================================================
-" Vim settings and mappings
-" You can edit them as you wish
- 
-if using_vim
-    " A bunch of things that are set by default in neovim, but not in vim
-
-    " no vi-compatible
-    set nocompatible
-
-    " allow plugins by file type (required for plugins!)
-    filetype plugin on
-    filetype indent on
-
-    " always show status bar
-    set ls=2
-
-    " incremental search
-    set incsearch
-    " highlighted search results
-    set hlsearch
-
-    " syntax highlight on
-    syntax on
-
-    " better backup, swap and undos storage for vim (nvim has nice ones by
-    " default)
-    set directory=~/.vim/dirs/tmp     " directory to place swap files in
-    set backup                        " make backup files
-    set backupdir=~/.vim/dirs/backups " where to put backup files
-    set undofile                      " persistent undos - undo after you re-open the file
-    set undodir=~/.vim/dirs/undos
-    set viminfo+=n~/.vim/dirs/viminfo
-    " create needed directories if they don't exist
-    if !isdirectory(&backupdir)
-        call mkdir(&backupdir, "p")
-    endif
-    if !isdirectory(&directory)
-        call mkdir(&directory, "p")
-    endif
-    if !isdirectory(&undodir)
-        call mkdir(&undodir, "p")
-    endif
-end
 
 " tabs and spaces handling
 set expandtab
@@ -394,11 +323,7 @@ endif
 " Custom configurations ----------------
 
 " Include user's custom nvim configurations
-if using_neovim
-    let custom_configs_path = "~/.config/nvim/custom.vim"
-else
-    let custom_configs_path = "~/.vim/custom.vim"
-endif
+let custom_configs_path = "~/.config/nvim/custom.vim"
 if filereadable(expand(custom_configs_path))
   execute "source " . custom_configs_path
 endif
