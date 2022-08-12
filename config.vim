@@ -9,6 +9,9 @@ let fancy_symbols_enabled = 0
 
 set encoding=utf-8
 
+" Use the correct python
+let g:python3_host_prog = '/usr/bin/python3'
+
 " ============================================================================
 " Vim-plug initialization
 " Avoid modifying this section, unless you are very sure of what you are doing
@@ -65,8 +68,6 @@ Plug 'fisadev/FixedTaskList.vim'
 Plug 'davidhalter/jedi-vim'
 " Indent text object
 Plug 'michaeljsmith/vim-indent-object'
-" Indentation based movements
-Plug 'jeetsukumaran/vim-indentwise'
 " Automatically sort python imports
 Plug 'fisadev/vim-isort'
 " Highlight matching html tags
@@ -219,14 +220,13 @@ function! PythonSetUp()
     " specific to where get the info
     let g:neomake_python_python_maker = neomake#makers#ft#python#python()
     let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
-    if getcwd() =~ $HOME . "/canonical/snappy/*"
-        let g:neomake_python_python_maker.exe = getcwd() . '/env/bin/python3 -m py_compile'
-        let g:neomake_python_flake8_maker.exe = getcwd() . '/env/bin/python3 -m flake8'
-        let g:neomake_python_flake8_maker.args = "--max-line-length=79"
-        set colorcolumn=80
+    if getcwd() =~ $HOME . "/canonical/*" && isdirectory(getcwd() . '/env')
+        let g:neomake_python_flake8_maker.exe = getcwd() . '/env/bin/python'
+        let g:neomake_python_flake8_maker.args = "-m flake8"
+        set colorcolumn=100
     else
-        let g:neomake_python_python_maker.exe = '/home/facundo/.virtualenvs/py3flake8/bin/python3'
-        let g:neomake_python_flake8_maker.exe = '/home/facundo/.virtualenvs/py3flake8/bin/flake8'
+        let g:neomake_python_python_maker.exe = '/usr/bin/python3'
+        let g:neomake_python_flake8_maker.exe = '/home/facundo/.local/env/bin/flake8'
         let g:neomake_python_flake8_maker.args = "--max-line-length=99 --select=E,W,F,C,N"
         set colorcolumn=100
     endif
@@ -369,11 +369,11 @@ highlight BadWhitespace ctermbg=red guibg=red
 au BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
 au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
  
-" set a painted vertical limit at column 80 for ReST files
-function! RestLimits()
-    set colorcolumn=80
-endfunction
-autocmd BufRead,BufNewFile *.rst call RestLimits()
+" " set a painted vertical limit at column 80 for ReST files
+" function! RestLimits()
+"     set colorcolumn=80
+" endfunction
+" autocmd BufRead,BufNewFile *.rst call RestLimits()
  
 " go to last know position inside the file when it's opened again
 if has("autocmd")
@@ -389,3 +389,25 @@ let g:SuperTabContextDefaultCompletionType = "<c-x><c-o>"
 " auto read it, ask the user what to do)
 set noautoread
 au FocusGained * :checktime
+
+" indent one block after starting a Python structure
+let g:pyindent_nested_paren = 'shiftwidth()'
+let g:pyindent_open_paren = 'shiftwidth()'
+let g:pyindent_continue = 'shiftwidth()'
+
+" spell checking stuff
+nnoremap <silent> <F5> :set spell!<cr>
+inoremap <silent> <F5> <C-O>:set spell!<cr>
+
+function! SpellLangSwitch()
+    if &spelllang == "es"
+        set spelllang=en
+    else
+        set spelllang=es
+    endif
+    if &spell == 0
+        set spell
+    endif
+endfunction
+nnoremap <silent> <F6> :call SpellLangSwitch()<cr>
+inoremap <silent> <F6> <C-O>:call SpellLangSwitch()<cr>
