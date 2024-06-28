@@ -137,6 +137,10 @@ nnoremap <silent> // :noh<CR>
 
 " clear empty spaces at the end of lines on save of python files
 autocmd BufWritePre *.py :%s/\s\+$//e
+autocmd BufWritePre *.c :%s/\s\+$//e
+autocmd BufWritePre *.cpp :%s/\s\+$//e
+autocmd BufWritePre *.rst :%s/\s\+$//e
+autocmd BufWritePre *.md :%s/\s\+$//e
 
 " fix problems with uncommon shells (fish, xonsh) and plugins running commands
 " (neomake, ...)
@@ -220,14 +224,15 @@ function! PythonSetUp()
     " specific to where get the info
     let g:neomake_python_python_maker = neomake#makers#ft#python#python()
     let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
-    if getcwd() =~ $HOME . "/canonical/*" && isdirectory(getcwd() . '/env')
-        let g:neomake_python_flake8_maker.exe = getcwd() . '/env/bin/python'
-        let g:neomake_python_flake8_maker.args = "-m flake8"
-        set colorcolumn=100
+    if getcwd() =~ $HOME . "/grafana"
+        let g:neomake_python_python_maker.exe = '/home/facundo/devel/reps/analisisdeudores/env/bin/python3'
+        let g:neomake_python_flake8_maker.exe = '/home/facundo/devel/reps/analisisdeudores/env/bin/flake8'
+        let g:neomake_python_flake8_maker.args = "--max-line-length=100 --select=E,W,F,C,N --ignore=W504"
+        set colorcolumn=121
     else
         let g:neomake_python_python_maker.exe = '/usr/bin/python3'
         let g:neomake_python_flake8_maker.exe = '/home/facundo/.local/env/bin/flake8'
-        let g:neomake_python_flake8_maker.args = "--max-line-length=99 --select=E,W,F,C,N"
+        let g:neomake_python_flake8_maker.args = "--max-line-length=99 --select=E,W,F,C,N --ignore=W504"
         set colorcolumn=100
     endif
 endfunction
