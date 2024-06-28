@@ -68,8 +68,6 @@ Plug 'fisadev/FixedTaskList.vim'
 Plug 'davidhalter/jedi-vim'
 " Indent text object
 Plug 'michaeljsmith/vim-indent-object'
-" Automatically sort python imports
-Plug 'fisadev/vim-isort'
 " Highlight matching html tags
 Plug 'valloric/MatchTagAlways'
 " Git integration
@@ -225,8 +223,8 @@ function! PythonSetUp()
     let g:neomake_python_python_maker = neomake#makers#ft#python#python()
     let g:neomake_python_flake8_maker = neomake#makers#ft#python#flake8()
     if getcwd() =~ $HOME . "/grafana"
-        let g:neomake_python_python_maker.exe = '/home/facundo/devel/reps/analisisdeudores/env/bin/python3'
-        let g:neomake_python_flake8_maker.exe = '/home/facundo/devel/reps/analisisdeudores/env/bin/flake8'
+        let g:neomake_python_python_maker.exe = '/usr/bin/python3'
+        let g:neomake_python_flake8_maker.exe = '/home/facundo/.local/env/bin/flake8'
         let g:neomake_python_flake8_maker.args = "--max-line-length=100 --select=E,W,F,C,N --ignore=W504"
         set colorcolumn=121
     else
